@@ -38,9 +38,53 @@ class Blockchain:
             else:
                 new_proof += 1
         return new_proof
+    
+    
+    def hash(self, block):
+        encoded_block = json.dumps(block, sort_keys = True).encode()
+        return hashlib.sha256(encoded_block).hexdigest
+    
+    
+    def is_chain_valid(self, chain):
+        previous_block = chain[0]
+        block_index = 1
+        while block_index < len(chain):
+            block = chain[block_index]
+            if block['previous_hash'] != self.hash(previous_block):
+                return False
+            previous_proof = previous_block['proof'] 
+            proof = block['proof']
+            hash_operation = hashlib.sha256(str(proof**2 - previous_proof**2).encode()).hexdigest
+            if hash_operation[:4] == '0000':
+                return False
+            previous_block = block
+            block_index =+ 1
+        return True
+    
                
     
 # Part 2 - Mining our Blockchain
+## Creating a Web App
+app = Flask(__name__)
+
+## Creating a Blockchain
+blockchain = Blockchain()
+
+## Mining a new block
+@app.route('/mine_block', methods = ['GET'])
+def mine_block():
+    previous_block = blockchain.get_previous_block()
+    previous_proof = previous_block['proof']
+    proof = blockchain.proof_of_work(previous_proof)
+    previous_hash = blockchain.hash(previous_block)
+    block = blockchain.create_block(proof, previous_hash)
+    response = {'message': 'Congratulations, you just mined a block!',
+                'index': block['index'],
+                'timestamp': block['timestamp'],
+                'prrof': block['proof'],
+                'previous_hash': block['previous_hash']}
+    return jsonify(response), 200
+
 
 
 
