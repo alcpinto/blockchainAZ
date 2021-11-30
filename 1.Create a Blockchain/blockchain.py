@@ -32,7 +32,7 @@ class Blockchain:
         new_proof = 1
         check_proof = False
         while check_proof is False:
-            hash_operation = hashlib.sha256(str(new_proof**2 - previous_proof**2).encode()).hexdigest
+            hash_operation = hashlib.sha256(str(new_proof**2 - previous_proof**2).encode()).hexdigest()
             if hash_operation[:4] == '0000':
                 check_proof = True
             else:
@@ -42,7 +42,7 @@ class Blockchain:
     
     def hash(self, block):
         encoded_block = json.dumps(block, sort_keys = True).encode()
-        return hashlib.sha256(encoded_block).hexdigest
+        return hashlib.sha256(encoded_block).hexdigest()
     
     
     def is_chain_valid(self, chain):
@@ -54,7 +54,7 @@ class Blockchain:
                 return False
             previous_proof = previous_block['proof'] 
             proof = block['proof']
-            hash_operation = hashlib.sha256(str(proof**2 - previous_proof**2).encode()).hexdigest
+            hash_operation = hashlib.sha256(str(proof**2 - previous_proof**2).encode()).hexdigest()
             if hash_operation[:4] == '0000':
                 return False
             previous_block = block
@@ -85,7 +85,24 @@ def mine_block():
                 'previous_hash': block['previous_hash']}
     return jsonify(response), 200
 
+# Creating the full blockchain
+@app.route('/get_chain', methods = ['GET'])
+def get_chain():
+    response = {'chain': blockchain.chain,
+                'length': len(blockchain.chain)}
+    return jsonify(response), 200
 
 
+# Creating the full blockchain
+@app.route('/is_valid', methods = ['GET'])
+def is_valid():
+    is_valid_chain = blockchain.is_chain_valid(blockchain.chain)
+    if is_valid_chain:
+        response = {'message': 'This is a valid chain'}
+    else:
+        response = {'message': 'This is an invalid chain'}
+    return jsonify(response), 200
 
-
+# Running the app
+if __name__== '__main__':
+    app.run(host='0.0.0.0', port=5000)
